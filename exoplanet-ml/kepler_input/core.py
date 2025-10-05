@@ -6,9 +6,11 @@ import requests
 # ----------------------------
 # CONFIGURACIÓN GENERAL
 # ----------------------------
-MODEL_DIR = os.environ.get("MODEL_DIR", "/workspace/exoplanet-ml/MODEL_DIR")
-KEPLER_DATA_DIR = os.environ.get("KEPLER_DATA_DIR", "/workspace/exoplanet-ml/KEPLER_DATA_DIR")
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/workspace/exoplanet-ml/kepler_pictures")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_DIR = os.environ.get("MODEL_DIR", os.path.join(BASE_DIR, "MODEL_DIR"))
+KEPLER_DATA_DIR = os.environ.get("KEPLER_DATA_DIR", os.path.join(BASE_DIR, "KEPLER_DATA_DIR"))
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", os.path.join(BASE_DIR, "kepler_pictures"))
 API_URL = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync"
 
 # ----------------------------
