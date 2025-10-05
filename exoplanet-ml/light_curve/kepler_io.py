@@ -207,13 +207,39 @@ def read_kepler_light_curve(filenames,
 
   for filename in filenames:
     with fits.open(gfile.Open(filename, "rb")) as hdu_list:
-      quarter = hdu_list["PRIMARY"].header["QUARTER"]
-      light_curve = hdu_list[light_curve_extension].data
+        # QUARTER en Kepler, SECTOR en TESS
+        quarter = hdu_list["PRIMARY"].header.get("QUARTER",
+                hdu_list["PRIMARY"].header.get("SECTOR", -1))
 
-    time = light_curve.TIME
-    flux = light_curve.PDCSAP_FLUX
-    if not time.size:
-      continue  # No data.
+        light_curve = hdu_list[light_curve_extension].data
+
+        time = light_curve["TIME"]
+
+        # ⚡ Ajuste de columna de flujo según misión
+        if "PDCSAP_FLUX" in light_curve.names:
+            flux = light_curve["PDCSAP_FLUX"]
+        elif "SAP_FLUX" in light_curve.names:
+            flux = light_curve["SAP_FLUX"]
+        else:
+            raise KeyError("No se encontró ninguna columna de flujo compatible.")
+
+        if not time.size:
+            continue
+
+        # ⚡ Ajuste para TESS (convertir BJD-2457000 → BJD-2454833)
+        mission = hdu_list["PRIMARY"].header.get("MISSION", "")
+        if "TESS" in mission.upper():
+            time = time + (2457000 - 2454833)
+
+        # Quitar NaN o Inf
+        mask = np.isfinite(time) & np.isfinite(flux)
+        time = time[mask]
+        flux = flux[mask]
+
+        # Ordenar por tiempo
+        order = np.argsort(time)
+        time = time[order]
+        flux = flux[order]
 
     # Possibly interpolate missing time values.
     if interpolate_missing_time:

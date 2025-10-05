@@ -148,7 +148,11 @@ def generate_view(time,
 
   if normalize:
     view -= np.median(view, axis=0)
-    view /= np.abs(np.min(view, axis=0))
+    min_val = np.abs(np.nanmin(view, axis=0))
+    if min_val == 0 or not np.isfinite(min_val):
+        min_val = 1.0  # evitar división por cero
+    view /= min_val
+
 
   return view
 
