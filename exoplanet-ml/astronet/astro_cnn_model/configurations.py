@@ -28,6 +28,7 @@ from __future__ import print_function
 from astronet.astro_model import configurations as parent_configs
 
 
+
 def base():
   """Base configuration for a CNN model with a single global view."""
   config = parent_configs.base()

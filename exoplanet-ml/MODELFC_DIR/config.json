@@ -1,0 +1,45 @@
+{
+  "inputs": {
+    "features": {
+      "global_view": {
+        "length": 2001,
+        "is_time_series": true,
+        "subcomponents": []
+      }
+    },
+    "label_feature": "av_training_set",
+    "label_map": {
+      "PC": 1,
+      "AFP": 0,
+      "NTP": 0,
+      "SCR1": 0,
+      "INV": 0,
+      "INJ1": 1,
+      "INJ2": 0
+    }
+  },
+  "hparams": {
+    "output_dim": 1,
+    "num_pre_logits_hidden_layers": 0,
+    "pre_logits_hidden_layer_size": 0,
+    "pre_logits_dropout_rate": 0.0,
+    "batch_size": 256,
+    "learning_rate": 0.0002,
+    "learning_rate_decay_steps": 0,
+    "learning_rate_end_factor": 0.0,
+    "learning_rate_decay_power": 1.0,
+    "weight_decay": 0.0,
+    "label_smoothing": 0.0,
+    "optimizer": "adam",
+    "clip_gradient_norm": null,
+    "time_series_hidden": {
+      "global_view": {
+        "num_local_layers": 0,
+        "local_layer_size": 128,
+        "translation_delta": 0,
+        "pooling_type": "max",
+        "dropout_rate": 0.0
+      }
+    }
+  }
+}

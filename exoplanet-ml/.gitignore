@@ -2,3 +2,7 @@
 /bazel-*
 
 get_kepler.sh
+
+MODEL_DIR/
+TFRECORD_DIR/
+KEPLER_DATA_DIR/

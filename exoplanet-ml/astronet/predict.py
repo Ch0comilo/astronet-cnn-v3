@@ -159,7 +159,10 @@ def main(_):
 
   # Create an input function.
   def input_fn():
+    for key in features:
+        features[key] = features[key].astype(np.float32)
     return tf.data.Dataset.from_tensors({"time_series_features": features})
+
 
   # Generate the predictions.
   for predictions in estimator.predict(input_fn):
