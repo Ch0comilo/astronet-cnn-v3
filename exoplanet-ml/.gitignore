@@ -3,7 +3,6 @@
 
 get_kepler.sh
 
-MODEL_DIR/
 TFRECORD_DIR/
 KEPLER_DATA_DIR/
 kepler_pictures/
