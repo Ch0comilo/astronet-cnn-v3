@@ -1,20 +1,22 @@
 import os
 import sys
-import json
 import subprocess
 import requests
 
 # ----------------------------
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN GENERAL (PORTABLE)
 # ----------------------------
-MODEL_DIR = "/workspace/exoplanet-ml/MODEL_DIR"
-KEPLER_DATA_DIR = "/workspace/exoplanet-ml/KEPLER_DATA_DIR"
-OUTPUT_DIR = "/workspace/exoplanet-ml/kepler_pictures"
+# Directorio base = ubicación del script actual
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+MODEL_DIR = os.environ.get("MODEL_DIR", os.path.join(BASE_DIR, "MODEL_DIR"))
+KEPLER_DATA_DIR = os.environ.get("KEPLER_DATA_DIR", os.path.join(BASE_DIR, "KEPLER_DATA_DIR"))
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", os.path.join(BASE_DIR, "kepler_pictures"))
 API_URL = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync"
 
+
 # ----------------------------
-# FUNCIÓN PARA OBTENER DATOS DEL ARCHIVO NASA
+# FUNCIÓN PARA OBTENER PARÁMETROS KEPLER
 # ----------------------------
 def get_kepler_params(kepler_id: str):
     """Obtiene period, t0 y duration desde la API oficial del NASA Exoplanet Archive."""
@@ -46,23 +48,19 @@ def get_kepler_params(kepler_id: str):
     print(f"   T0      = {t0} BKJD")
     print(f"   Duration= {duration} horas")
 
-    return period, t0, duration/24
+    return period, t0, duration / 24
 
 
 # ----------------------------
 # DESCARGAR ARCHIVOS FITS
 # ----------------------------
 def download_fits_files(kepler_id: str):
-    """Descarga los archivos FITS para el ID indicado (rellenando con ceros si es necesario)."""
-    # 🔹 Asegurar que el ID tenga 9 dígitos
+    """Descarga los archivos FITS para el ID indicado."""
     kepler_id_padded = kepler_id.zfill(9)
-
-    # 🔹 Prefijo según los primeros 4 dígitos
     prefix = kepler_id_padded[:4]
     save_dir = os.path.join(KEPLER_DATA_DIR, prefix, kepler_id_padded)
     os.makedirs(save_dir, exist_ok=True)
 
-    # 🔹 URL oficial de Kepler
     url = f"http://archive.stsci.edu/pub/kepler/lightcurves/{prefix}/{kepler_id_padded}/"
     print(f"⬇️  Descargando FITS desde {url} ...")
 
@@ -77,7 +75,6 @@ def download_fits_files(kepler_id: str):
     return save_dir
 
 
-
 # ----------------------------
 # EJECUTAR EL MODELO ASTRONET
 # ----------------------------
@@ -87,7 +84,7 @@ def run_astronet(kepler_id: str, period: float, t0: float, duration: float):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     cmd = [
-        "python", "-m", "astronet.predict",
+        sys.executable, "-m", "astronet.predict",
         "--model=AstroCNNModel",
         "--config_name=local_global",
         f"--model_dir={MODEL_DIR}",
@@ -99,31 +96,26 @@ def run_astronet(kepler_id: str, period: float, t0: float, duration: float):
         f"--output_image_file={output_file}"
     ]
 
-    print(f"🚀 Ejecutando modelo Astronet...")
+    print("🚀 Ejecutando modelo Astronet...")
     subprocess.run(cmd, check=True)
     print(f"✅ Predicción completada. Imagen guardada en {output_file}")
+    return output_file
 
 
 # ----------------------------
-# MAIN
+# PIPELINE COMPLETO
 # ----------------------------
-def main():
-
-    if len(sys.argv) != 2:
-        print("Uso: python kepler_predict.py <KEPLER_ID>")
-        sys.exit(1)
-
-    kepler_id = sys.argv[1].strip()
-    try:
-        period, t0, duration = get_kepler_params(kepler_id)
-        download_fits_files(kepler_id)
-        run_astronet(kepler_id, period, t0, duration)
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
+def predict(kepler_id: str):
+    """Pipeline completo para Kepler ID."""
+    period, t0, duration = get_kepler_params(kepler_id)
+    download_fits_files(kepler_id)
+    run_astronet(kepler_id, period, t0, duration)
+    print("✅ Proceso finalizado correctamente.")
 
 
+# Ejemplo de uso directo:
 if __name__ == "__main__":
-    main()
-
-
+    if len(sys.argv) < 2:
+        print("Uso: python kepler_input.py <KEPLER_ID>")
+        sys.exit(1)
+    predict(sys.argv[1])
