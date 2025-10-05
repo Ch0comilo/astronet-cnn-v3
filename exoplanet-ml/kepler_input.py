@@ -53,12 +53,17 @@ def get_kepler_params(kepler_id: str):
 # DESCARGAR ARCHIVOS FITS
 # ----------------------------
 def download_fits_files(kepler_id: str):
-    """Descarga los archivos FITS para el ID indicado."""
-    prefix = kepler_id[:4]
-    save_dir = os.path.join(KEPLER_DATA_DIR, prefix, kepler_id)
+    """Descarga los archivos FITS para el ID indicado (rellenando con ceros si es necesario)."""
+    # 🔹 Asegurar que el ID tenga 9 dígitos
+    kepler_id_padded = kepler_id.zfill(9)
+
+    # 🔹 Prefijo según los primeros 4 dígitos
+    prefix = kepler_id_padded[:4]
+    save_dir = os.path.join(KEPLER_DATA_DIR, prefix, kepler_id_padded)
     os.makedirs(save_dir, exist_ok=True)
 
-    url = f"http://archive.stsci.edu/pub/kepler/lightcurves/{prefix}/{kepler_id}/"
+    # 🔹 URL oficial de Kepler
+    url = f"http://archive.stsci.edu/pub/kepler/lightcurves/{prefix}/{kepler_id_padded}/"
     print(f"⬇️  Descargando FITS desde {url} ...")
 
     cmd = [
@@ -70,6 +75,7 @@ def download_fits_files(kepler_id: str):
     subprocess.run(cmd, check=True)
     print(f"✅ Archivos FITS guardados en {save_dir}")
     return save_dir
+
 
 
 # ----------------------------
