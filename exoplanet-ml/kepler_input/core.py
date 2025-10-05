@@ -1,15 +1,15 @@
 import os
+import sys
 import subprocess
 import requests
 
 # ----------------------------
 # CONFIGURACIÓN GENERAL
 # ----------------------------
-MODEL_DIR = "/workspace/exoplanet-ml/MODEL_DIR"
-KEPLER_DATA_DIR = "/workspace/exoplanet-ml/KEPLER_DATA_DIR"
-OUTPUT_DIR = "/workspace/exoplanet-ml/kepler_pictures"
+MODEL_DIR = os.environ.get("MODEL_DIR", "/workspace/exoplanet-ml/MODEL_DIR")
+KEPLER_DATA_DIR = os.environ.get("KEPLER_DATA_DIR", "/workspace/exoplanet-ml/KEPLER_DATA_DIR")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/workspace/exoplanet-ml/kepler_pictures")
 API_URL = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync"
-
 
 # ----------------------------
 # FUNCIÓN PARA OBTENER DATOS DEL ARCHIVO NASA
@@ -51,7 +51,7 @@ def get_kepler_params(kepler_id: str):
 # DESCARGAR ARCHIVOS FITS
 # ----------------------------
 def download_fits_files(kepler_id: str):
-    """Descarga los archivos FITS para el ID indicado (rellenando con ceros si es necesario)."""
+    """Descarga los archivos FITS para el ID indicado."""
     kepler_id_padded = kepler_id.zfill(9)
     prefix = kepler_id_padded[:4]
     save_dir = os.path.join(KEPLER_DATA_DIR, prefix, kepler_id_padded)
@@ -92,22 +92,18 @@ def run_astronet(kepler_id: str, period: float, t0: float, duration: float):
         f"--output_image_file={output_file}"
     ]
 
-    print(f"🚀 Ejecutando modelo Astronet...")
+    print("🚀 Ejecutando modelo Astronet...")
     subprocess.run(cmd, check=True)
     print(f"✅ Predicción completada. Imagen guardada en {output_file}")
     return output_file
 
 
 # ----------------------------
-# INTERFAZ PRINCIPAL
+# PIPELINE COMPLETO
 # ----------------------------
 def predict(kepler_id: str):
-    """Función principal reutilizable desde otros módulos."""
-    try:
-        period, t0, duration = get_kepler_params(kepler_id)
-        download_fits_files(kepler_id)
-        image_path = run_astronet(kepler_id, period, t0, duration)
-        return {"kepler_id": kepler_id, "image": image_path}
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return None
+    """Pipeline completo para Kepler ID."""
+    period, t0, duration = get_kepler_params(kepler_id)
+    download_fits_files(kepler_id)
+    run_astronet(kepler_id, period, t0, duration)
+    print("✅ Proceso finalizado correctamente.")
