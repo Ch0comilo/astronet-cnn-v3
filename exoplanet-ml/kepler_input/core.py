@@ -1,6 +1,4 @@
 import os
-import sys
-import json
 import subprocess
 import requests
 
@@ -10,8 +8,8 @@ import requests
 MODEL_DIR = "/workspace/exoplanet-ml/MODEL_DIR"
 KEPLER_DATA_DIR = "/workspace/exoplanet-ml/KEPLER_DATA_DIR"
 OUTPUT_DIR = "/workspace/exoplanet-ml/kepler_pictures"
-
 API_URL = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync"
+
 
 # ----------------------------
 # FUNCIÓN PARA OBTENER DATOS DEL ARCHIVO NASA
@@ -46,7 +44,7 @@ def get_kepler_params(kepler_id: str):
     print(f"   T0      = {t0} BKJD")
     print(f"   Duration= {duration} horas")
 
-    return period, t0, duration/24
+    return period, t0, duration / 24
 
 
 # ----------------------------
@@ -54,15 +52,11 @@ def get_kepler_params(kepler_id: str):
 # ----------------------------
 def download_fits_files(kepler_id: str):
     """Descarga los archivos FITS para el ID indicado (rellenando con ceros si es necesario)."""
-    # 🔹 Asegurar que el ID tenga 9 dígitos
     kepler_id_padded = kepler_id.zfill(9)
-
-    # 🔹 Prefijo según los primeros 4 dígitos
     prefix = kepler_id_padded[:4]
     save_dir = os.path.join(KEPLER_DATA_DIR, prefix, kepler_id_padded)
     os.makedirs(save_dir, exist_ok=True)
 
-    # 🔹 URL oficial de Kepler
     url = f"http://archive.stsci.edu/pub/kepler/lightcurves/{prefix}/{kepler_id_padded}/"
     print(f"⬇️  Descargando FITS desde {url} ...")
 
@@ -75,7 +69,6 @@ def download_fits_files(kepler_id: str):
     subprocess.run(cmd, check=True)
     print(f"✅ Archivos FITS guardados en {save_dir}")
     return save_dir
-
 
 
 # ----------------------------
@@ -102,28 +95,19 @@ def run_astronet(kepler_id: str, period: float, t0: float, duration: float):
     print(f"🚀 Ejecutando modelo Astronet...")
     subprocess.run(cmd, check=True)
     print(f"✅ Predicción completada. Imagen guardada en {output_file}")
+    return output_file
 
 
 # ----------------------------
-# MAIN
+# INTERFAZ PRINCIPAL
 # ----------------------------
-def main():
-
-    if len(sys.argv) != 2:
-        print("Uso: python kepler_predict.py <KEPLER_ID>")
-        sys.exit(1)
-
-    kepler_id = sys.argv[1].strip()
+def predict(kepler_id: str):
+    """Función principal reutilizable desde otros módulos."""
     try:
         period, t0, duration = get_kepler_params(kepler_id)
         download_fits_files(kepler_id)
-        run_astronet(kepler_id, period, t0, duration)
+        image_path = run_astronet(kepler_id, period, t0, duration)
+        return {"kepler_id": kepler_id, "image": image_path}
     except Exception as e:
         print(f"❌ Error: {e}")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
-
-
+        return None
