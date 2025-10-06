@@ -14,7 +14,6 @@ KEPLER_DATA_DIR = os.environ.get("KEPLER_DATA_DIR", os.path.join(BASE_DIR, "KEPL
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", os.path.join(BASE_DIR, "kepler_pictures"))
 API_URL = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync"
 
-
 # ----------------------------
 # FUNCIÓN PARA OBTENER PARÁMETROS KEPLER
 # ----------------------------
